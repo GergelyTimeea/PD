@@ -5,7 +5,6 @@
 int main()
 {
     HKEY hServicesKey = NULL;
-    // Deschidem cheia: HKLM\SYSTEM\CurrentControlSet\Services
     LONG lRet = RegOpenKeyExA(
         HKEY_LOCAL_MACHINE,
         "SYSTEM\\CurrentControlSet\\Services",
@@ -20,7 +19,6 @@ int main()
         return 1;
     }
 
-    // Enumerăm toate subcheile (serviciile)
     DWORD index = 0;
     const DWORD MAX_KEY_LENGTH = 255;
     char subKeyName[MAX_KEY_LENGTH + 1];
@@ -30,26 +28,23 @@ int main()
     while (true)
     {
         subKeyNameSize = MAX_KEY_LENGTH + 1;
-        // Enumerăm subcheia cu indexul curent
         LONG enumRes = RegEnumKeyExA(
             hServicesKey,
             index,
             subKeyName,
             &subKeyNameSize,
-            NULL,   // rezervat
-            NULL,   // buffer pentru class (nu avem nevoie)
-            NULL,   // dimensiunea buffer-ului class
+            NULL,   
+            NULL,   
+            NULL,  
             &ftLastWriteTime
         );
 
         if (enumRes == ERROR_NO_MORE_ITEMS)
         {
-            // Am terminat enumerarea
             break;
         }
         else if (enumRes == ERROR_SUCCESS)
         {
-            // Deschidem subcheia pentru a citi "ImagePath"
             HKEY hSubKey = NULL;
             LONG openSubKeyRes = RegOpenKeyExA(
                 hServicesKey,
@@ -61,7 +56,6 @@ int main()
 
             if (openSubKeyRes == ERROR_SUCCESS)
             {
-                // Citim valoarea "ImagePath"
                 char imagePath[1024];
                 DWORD dataSize = sizeof(imagePath);
                 DWORD type = 0;
@@ -76,7 +70,6 @@ int main()
 
                 if (queryRes == ERROR_SUCCESS && (type == REG_SZ || type == REG_EXPAND_SZ))
                 {
-                    // Afișăm doar dacă este un tip de date de tip șir
                     std::cout << subKeyName << " -> " << imagePath << std::endl;
                 }
 
@@ -86,13 +79,11 @@ int main()
         }
         else
         {
-            // În caz de altă eroare, ne oprim
             std::cerr << "Eroare la enumerare subchei: " << enumRes << std::endl;
             break;
         }
     }
 
-    // Închidem cheia principală
     RegCloseKey(hServicesKey);
 
     std::cout << "Apăsați Enter pentru a închide...";
